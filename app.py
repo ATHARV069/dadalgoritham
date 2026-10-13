@@ -2,11 +2,11 @@ import streamlit as st
 import pandas as pd
 import yfinance as yf
 
-st.set_page_config(page_title="Dad's Market Command Center", page_icon="📈", layout="wide")
+st.set_page_config(page_title="AI Market Command Center", page_icon="🤖", layout="wide")
 
-st.title("📈 Dad's Market Command Center")
+st.title("🤖 AI Market Command Center & Trading Assistant")
 
-tab1, tab2, tab3, tab4 = st.tabs(["🔍 Stock Search & Analysis", "🏆 Best Stock Finder", "🚀 Live & Upcoming IPOs", "📚 Learn & Guides"])
+tab1, tab2, tab3, tab4 = st.tabs(["🔍 Stock Search & AI Analysis", "🏆 AI Stock Screener", "🚀 Live & Upcoming IPOs", "📚 Market Knowledge Hub"])
 
 # --- TAB 1: ANY STOCK SEARCH ---
 with tab1:
@@ -20,8 +20,8 @@ with tab1:
         
     symbol_formatted = f"{user_symbol}.NS" if not user_symbol.endswith(".NS") else user_symbol
 
-    if st.button("Fetch Live Stock Analysis"):
-        with st.spinner(f"Loading live data for {user_symbol}..."):
+    if st.button("Run AI Analysis"):
+        with st.spinner(f"Analyzing live data for {user_symbol}..."):
             try:
                 stock = yf.Ticker(symbol_formatted)
                 df = stock.history(period=period_choice)
@@ -48,18 +48,18 @@ with tab1:
                     m1, m2, m3 = st.columns(3)
                     m1.metric("Current Price", f"₹{price:.2f}")
                     m2.metric("RSI (14-day)", f"{rsi:.1f}")
-                    m3.metric("Trend", "Uptrend 🟢" if ema9 > ema21 else "Downtrend 🔴")
+                    m3.metric("AI Trend Detection", "Uptrend 🟢" if ema9 > ema21 else "Downtrend 🔴")
                     
                     # Signal Decision
                     st.divider()
                     if ema9 > ema21 and rsi < 70:
-                        st.success("🟢 **STRONG BUY SIGNAL**: Stock is in an uptrend and not overbought.")
+                        st.success("🟢 **AI Verdict: STRONG BUY SETUP** — Stock shows strong momentum and healthy entry levels.")
                     elif ema9 > ema21 and rsi >= 70:
-                        st.warning("⚠️ **HOLD / CAUTION**: Stock is in an uptrend, but RSI is overbought (>70). Avoid new buying right now.")
+                        st.warning("⚠️ **AI Verdict: HOLD / OVERBOUGHT** — Uptrend is active, but RSI is high (>70). Wait for a dip.")
                     elif ema9 < ema21 and rsi <= 30:
-                        st.info("🔵 **OVERSOLD WATCHLIST**: Stock is down, but RSI is oversold (<30). Potential bounce candidate.")
+                        st.info("🔵 **AI Verdict: OVERSOLD WATCH** — Price is dropping, but RSI indicates extreme oversold levels. Watch for a reversal.")
                     else:
-                        st.error("🔴 **BEARISH / EXIT**: Stock is currently in a downtrend.")
+                        st.error("🔴 **AI Verdict: BEARISH / AVOID** — Momentum is currently negative.")
                         
                     st.line_chart(df[['Close', 'EMA_9', 'EMA_21']])
                 else:
@@ -69,8 +69,8 @@ with tab1:
 
 # --- TAB 2: BEST STOCK FINDER ---
 with tab2:
-    st.subheader("Automated Screener: Ranking Popular Stocks")
-    st.write("Analyzes a list of major stocks and ranks the best buy opportunities automatically.")
+    st.subheader("Automated AI Stock Screener")
+    st.write("Scans major NSE heavyweights and ranks them based on technical strength.")
     
     watchlist = {
         "Reliance": "RELIANCE.NS", "TCS": "TCS.NS", "HDFC Bank": "HDFCBANK.NS",
@@ -78,9 +78,9 @@ with tab2:
         "Infosys": "INFY.NS", "ITC": "ITC.NS", "L&T": "LT.NS", "ICICI Bank": "ICICIBANK.NS"
     }
     
-    if st.button("Run Screener Now"):
+    if st.button("Run Market Scan"):
         results = []
-        with st.spinner("Scanning market trends..."):
+        with st.spinner("AI is evaluating watchlist performance..."):
             for name, ticker in watchlist.items():
                 try:
                     df = yf.Ticker(ticker).history(period="1mo")
@@ -111,18 +111,18 @@ with tab2:
                             "Price (₹)": round(latest_price, 2),
                             "RSI": round(latest_rsi, 1),
                             "Trend": "Bullish 📈" if is_uptrend else "Bearish 📉",
-                            "Recommendation": score
+                            "AI Rating": score
                         })
                 except:
                     pass
             
             res_df = pd.DataFrame(results)
-            st.dataframe(res_df.sort_values(by="Recommendation"), use_container_width=True)
+            st.dataframe(res_df.sort_values(by="AI Rating"), use_container_width=True)
 
 # --- TAB 3: IPO TRACKER ---
 with tab3:
     st.subheader("Current & Upcoming Mainboard IPOs")
-    st.info("💡 Tip: Prioritize Mainboard IPOs with strong institutional demand and subscription history.")
+    st.info("💡 Keep track of upcoming mainboard issues and filing stages.")
     
     ipo_data = [
         {"Company": "Fusion CX", "Type": "Mainboard", "Price Band": "₹275 - ₹289", "Dates": "Oct 14 - Oct 16, 2026", "Status": "Open Now"},
@@ -136,20 +136,20 @@ with tab3:
     
     st.dataframe(pd.DataFrame(ipo_data), use_container_width=True)
 
-# --- TAB 4: LEARN & GUIDES ---
+# --- TAB 4: MARKET KNOWLEDGE HUB ---
 with tab4:
-    st.subheader("📚 Quick Stock Learning Guide for Dad")
+    st.subheader("📚 AI Indicator Reference Guide")
     
     st.markdown("""
-    ### 1. What is RSI (Relative Strength Index)?
-    * **RSI Below 30**: Stock is underpriced (oversold). Good area to watch for buying opportunities.
-    * **RSI 40 to 65**: Healthy momentum range for riding an upward trend.
-    * **RSI Above 70**: Stock is overheated (overbought). High risk of temporary pullback.
+    ### 1. Relative Strength Index (RSI)
+    * **Below 30**: Oversold region. Potential reversal/bounce zone.
+    * **40 to 65**: Ideal bullish momentum corridor.
+    * **Above 70**: Overbought region. High chance of a short-term correction.
     
-    ### 2. What is EMA Crossover (Moving Averages)?
-    * **EMA 9 > EMA 21 (Green Signal)**: Short-term price momentum is stronger than medium-term momentum. Indicates a **Bullish Trend**.
-    * **EMA 9 < EMA 21 (Red Signal)**: Indicates price momentum is dropping. Indicates a **Bearish Trend**.
+    ### 2. EMA Crossover Strategy
+    * **EMA 9 > EMA 21**: Short-term buyers are in control (Bullish).
+    * **EMA 9 < EMA 21**: Sellers dominate the price action (Bearish).
     
-    ### 3. Golden Rule for Buying
-    Look for stocks where **EMA 9 is above EMA 21** AND **RSI is between 40 and 65**. This combination offers high-probability setups!
+    ### 3. High-Probability Setup
+    The AI screener flags a **Best Buy** when a stock is in an uptrend (`EMA 9 > EMA 21`) while its RSI remains balanced (`40 to 65`).
     """)
