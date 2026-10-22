@@ -1,0 +1,69 @@
+# Base44 sandbox runbook for the AI Quant Terminal (Streamlit).
+#
+# Development-oriented: dependencies are installed into the image, while app
+# source is bind-mounted from the checkout so edits are picked up by Streamlit's
+# file watcher without a rebuild (server.runOnSave=true reruns the script).
+#
+# Usage: docker compose -f docker-compose.base44.yml up -d --build
+name: base44
+
+services:
+  web:
+    # Only requirements.txt is baked in; app.py stays bind-mounted (never COPYed)
+    # so the running app always reflects the cloned source.
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.12-slim
+        WORKDIR /app
+        COPY requirements.txt ./
+        RUN pip install --no-cache-dir -r requirements.txt
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "3000:8501"
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Passed through for the preview-only origin allowlist below. With
+      # BASE44_PREVIEW_MODE unset the app keeps Streamlit's stock settings.
+      - BASE44_PREVIEW_MODE
+      - BASE44_PUBLIC_HOST_SUFFIX
+    command:
+      - sh
+      - -ec
+      - >-
+        preview_args="";
+        if [ "$$BASE44_PREVIEW_MODE" = "1" ] && [ -n "$$BASE44_PUBLIC_HOST_SUFFIX" ]; then
+        preview_args="--server.corsAllowedOrigins=https://3000-$$BASE44_PUBLIC_HOST_SUFFIX";
+        fi;
+        exec streamlit run app.py
+        --server.address=0.0.0.0
+        --server.port=8501
+        --server.headless=true
+        --server.fileWatcherType=poll
+        --server.runOnSave=true
+        $$preview_args
+    healthcheck:
+      # Streamlit's own read-only liveness endpoint (_stcore/health -> "ok"),
+      # probed with the image's python since curl is not installed.
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import sys, urllib.request
+          try:
+              body = urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3).read()
+          except Exception:
+              sys.exit(1)
+          sys.exit(0 if body.strip() == b'ok' else 1)
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    labels:
+      base44.project: "AI Quant Terminal"
+      base44.kind: "web"
+      base44.port: "3000"
